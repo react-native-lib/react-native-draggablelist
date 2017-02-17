@@ -1,15 +1,9 @@
 'use strict';
 
-import React , {Component, PropTypes} from 'react'
-import {
-    View,
-    ScrollView,
-    LayoutAnimation,
-    StyleSheet,
-    Animated,
-} from 'react-native';
+import React, {PropTypes} from "react";
+import {View, ScrollView, LayoutAnimation, StyleSheet, Animated} from "react-native";
 
-var AnimatedCell = require('./animatedCell');
+var AnimatedCell = require('./AnimatedCell');
 var invariant = require('invariant');
 var TimerMixin = require('react-timer-mixin');
 var _ = require('lodash');
@@ -18,25 +12,24 @@ var DragableList = React.createClass({
     mixins: [TimerMixin],
 
     propTypes: {
+        isScrollView: PropTypes.bool.isRequired, //scrollView or view
         dataSource: PropTypes.array.isRequired, //data
-        component: PropTypes.func.isRequired, //cell
-        cellProps: PropTypes.object, //cell props
-        shouldUpdateId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]), //需要更新的cell id
-        onMove: PropTypes.func, //callback of move
         keys: PropTypes.array, //pre orders of data
-        onPressCell: PropTypes.func, //
-        scrollStyle: View.propTypes.style, //scroll view style
-        contentInset: PropTypes.object, //scroll view contentInset
 
-        isScrollView: PropTypes.bool, //scrollView or view
-        toggleScroll: PropTypes.func, //if isScrollView is false, and outside component is a scrollView, should set this
+        containerStyle: View.propTypes.style, //scroll view style
+        contentStyle: View.propTypes.style, //scroll view style
+        cellStyle: View.propTypes.style, //cell props
+
+        shouldUpdateId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]), //需要更新的cell id
         shouldUpdate: PropTypes.bool, //update all cell
+
+        onMove: PropTypes.func, //callback of move
+        onPressCell: PropTypes.func, //
+        toggleScroll: PropTypes.func, //if isScrollView is false, and outside component is a scrollView, should set this
     },
 
     getDefaultProps() {
         return {
-            dataSource: [],
-            isScrollView: true,
         };
     },
 
@@ -46,6 +39,9 @@ var DragableList = React.createClass({
         var dataSource = this.props.dataSource || [];
         if (this.props.keys && this.props.keys.length > 0) {
             keys = this.props.keys;
+            keys = keys.map((key)=>{
+                return key.toString();
+            })
             for (var i = 0; i < dataSource.length; i++) {
                 var item = dataSource[i];
                 var key = item.id.toString();
@@ -65,6 +61,7 @@ var DragableList = React.createClass({
         return {
             keys: keys,
             key_groups: keyGroups,
+
             restLayouts: [],
             scrollable: true,
             shouldUpdate: false,
@@ -92,6 +89,7 @@ var DragableList = React.createClass({
                     return item.id.toString();
                 });
                 newKeys = _.intersection(this.state.keys, newKeys);
+                console.log("componentWillReceiveProps: newKeys1:", newKeys)
                 this.setState({
                     keys: newKeys,
                     key_groups,
@@ -101,20 +99,40 @@ var DragableList = React.createClass({
                     return item.id.toString();
                 });
                 newKeys = _.union(this.state.keys, newKeys);
+                console.log("componentWillReceiveProps: newKeys2:", newKeys)
                 this.setState({
                     keys: newKeys,
                     key_groups,
                 })
+            }else{
+                // console.log("componentWillReceiveProps:", key_groups);
+                // this.setState({
+                //     key_groups,
+                //     shouldUpdate:true
+                // })
             }
         }
+    },
 
+    reloadItems(){
+        this.setState({
+            shouldUpdate:true
+        }, ()=>{
+            this.setState({shouldUpdate:false});
+        })
+
+        // this.setState({
+        //     shouldUpdate:true
+        // })
     },
 
     setTimeoutId: null,
     //animate
     _onMove(position: Point): void {
+        // console.log("_onMove:", position);
         var newKeys = moveToClosest(this.state, position);
         if (newKeys !== this.state.keys) {
+            // console.log("_onMove newKeys:", newKeys);
             LayoutAnimation.easeInEaseOut();
             this.setState({keys: newKeys});
             this.props.onMove && this.props.onMove(newKeys);
@@ -122,20 +140,21 @@ var DragableList = React.createClass({
     },
 
     toggleScroll: function (can, callback) {
+        this.props.toggleScroll && this.props.toggleScroll(can, callback)
         if (this.props.isScrollView) {
             this.setState({
                 scrollable: can
             }, callback);
+        }else{
+            if(callback)callback();
         }
-        this.props.toggleScroll && this.props.toggleScroll(can, callback)
     },
 
     render() {
+        // console.log("DraggableList:render:data:", this.state.key_groups);
         var content = <View />;
 
-        var CellComponent = this.props.component;
-
-        var cellProps = this.props.cellProps;
+        var cellStyle = this.props.cellStyle;
 
         var shouldUpdateId = null;
         if (this.props.shouldUpdateId !== null && this.props.shouldUpdateId !== undefined) {
@@ -153,19 +172,23 @@ var DragableList = React.createClass({
                     return (
                         <AnimatedCell
                             key={key + 'd'}
+                            keyName={key + 'd'}
+
                             dummy={true}
-                            cellProps={cellProps}
-                            cellComponent={this.props.component}
+
+                            cellStyle={cellStyle}
                             rowData={row_data}
                             onPressCell={this.props.onPressCell}
                             shouldUpdate={shouldUpdate}
                             shouldUpdateId={this.props.shouldUpdateId}
-                            />
+                            renderCell={this.props.renderCell}
+                        />
                     );
                 } else {
                     if (!this.state.restLayouts[idx]) {
                         var onLayout = function(index, e) {
                             var layout = e.nativeEvent.layout;
+                            // console.log("onLayout:", layout, "index:", index);
                             this.setState((state) => {
                                 state.restLayouts[index] = layout;
                                 return state;
@@ -175,23 +198,27 @@ var DragableList = React.createClass({
                     return (
                         <AnimatedCell
                             key={key}
+                            keyName={key}
+
                             onLayout={onLayout}
                             restLayout={this.state.restLayouts[idx]}
                             onActivate={() => {
+                                {/*console.log("onActivate:", key, " idx:", idx);*/}
                                 this.setState({
                                     shouldUpdate: true,
                                     activeKey: key,
                                     activeInitialLayout: this.state.restLayouts[idx],
                                 })
                             }}
+
                             toggleScroll={this.toggleScroll}
-                            cellProps={cellProps}
-                            cellComponent={this.props.component}
+                            cellStyle={cellStyle}
                             rowData={row_data}
                             onPressCell={this.props.onPressCell}
                             shouldUpdate={shouldUpdate}
                             shouldUpdateId={this.props.shouldUpdateId}
-                            />
+                            renderCell={this.props.renderCell}
+                        />
                     );
                 }
             });
@@ -199,11 +226,10 @@ var DragableList = React.createClass({
                 var row_data = this.state.key_groups[this.state.activeKey];
                 var shouldUpdate = this.state.shouldUpdate || (shouldUpdateId == this.state.activeKey);
                 content.push(
-                    <Animated.View key="dark" style={[styles.darkening]} />
-                );
-                content.push(
                     <AnimatedCell
                         key={this.state.activeKey}
+                        keyName={this.state.activeKey}
+
                         restLayout={this.state.activeInitialLayout}
                         onMove={this._onMove}
                         onDeactivate={() => {
@@ -212,14 +238,15 @@ var DragableList = React.createClass({
                                 activeKey: undefined
                             });
                         }}
+
                         toggleScroll={this.toggleScroll}
-                        cellProps={cellProps}
-                        cellComponent={this.props.component}
+                        cellStyle={cellStyle}
                         rowData={row_data}
                         onPressCell={this.props.onPressCell}
                         shouldUpdate={shouldUpdate}
                         shouldUpdateId={this.props.shouldUpdateId}
-                        />
+                        renderCell={this.props.renderCell}
+                    />
                 );
             }
         }
@@ -228,13 +255,15 @@ var DragableList = React.createClass({
 
         return (
             <ViewTag
-                style={[{flex: 1}, this.props.scrollStyle]}
+                style={this.props.containerStyle}
                 scrollEnabled={this.state.scrollable}
                 automaticallyAdjustContentInsets={false}
                 showsVerticalScrollIndicator={false}
-                contentInset={this.props.contentInset || {bottom: 0}}
-                >
-                {content}
+                contentInset={{bottom: 0}}
+            >
+                <View style={[{flexGrow: 1, flexDirection:'row', flexWrap:'wrap'}, this.props.contentStyle]}>
+                    {content}
+                </View>
             </ViewTag>
         )
     }
@@ -272,16 +301,5 @@ function moveToClosest({activeKey, keys, restLayouts}, position) {
     }
 }
 
-var styles = StyleSheet.create({
-    darkening: {
-        backgroundColor: 'black',
-        position: 'absolute',
-        left: 0,
-        top: 0,
-        right: 0,
-        bottom: 0,
-        opacity: 0,
-    },
-});
 
 module.exports = DragableList;

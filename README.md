@@ -15,50 +15,68 @@
     var DraggableList = require('react-native-draggablelist');
 
     <DraggableList
-            dataSource={this.state.dataSource}
-            component={Cell}
-            cellProps={/*your cell props*/}
-            onMove={this._onMove}
-            keys={this.state.keys}
-            shouldUpdateId={'2'}
-            onPressCell={this.onPressCell}
-            scrollStyle: {/*styles*/}, //scroll view style
-            contentInset: {}, //scroll view contentInset
+                    isScrollView={false}
+                    dataSource={datas}
+                    keys={keys}
+                    
+                    containerStyle={{}}
+                    contentStyle={{ }}
+                    cellStyle={{width:this.baseItemWidth, height:this.baseItemHeight}}
+    
+                    toggleScroll={(can)=>{
+                        this.setState({
+                            scrollable: can,
+                        })
+                        if(!can){
+                            this.setState({
+                                isEditing:true
+                            })
+                        }
+                   }}
+                    renderCell={(rowData)=>{
+                        {/*console.log("renderCell:", rowData);*/}
+                        return self.renderBaseById(rowData.id, SectionType.TypeSelected);
+                   }}
+                    onMove={(newKeys)=>{
+                       console.log("newKeys:", newKeys);
+                       newKeys = newKeys.map((key)=>{
+                           return parseInt(key);
+                       })
+                       self.setState({selectedItems:newKeys})
+                   }}
+                />
             
-            isScrollView: PropTypes.bool, //default true, 
-            toggleScroll: PropTypes.func,
-            shouldUpdate: PropTypes.bool, //update all cell
-            />
-            
-    dataSource:     isRequired, array of your data include id, like [{id: '1', name: ''}, {id: '2', name: ''}]
-    component:      isRequired, your cell component
-    onMove:             callback function, return the orders of cell by id
-    keys:               you can also pass data orders, like ['2','1'], but it should be same with your data ids
-    shouldUpdateId:     the cell should be update
-    onPressCell:        when cell pressed 
     isScrollView:       is scrollView or view, 
-    toggleScroll:       if isScrollView is false, and outside component is a scrollView, should set the callback for scrollEnabled state
+    dataSource:     isRequired, array of your data include id, like [{id: '1', name: ''}, {id: '2', name: ''}]
+    keys:               you can also pass data orders, like ['2','1'], but it should be same with your data ids
+    
+    containerStyle: container style
+    contentStyle: content style
+    cellStyle:cell style
+    
+
+    shouldUpdateId:     the cell should be update
     shouldUpdate:       update all cell
+    
+    renderCell:         render cell
+    toggleScroll:       if isScrollView is false, and outside component is a scrollView, should set the callback for scrollEnabled state
+    onMove:             callback function, return the orders of cell by id(string)
+    onPressCell:        when cell pressed 
 
 #### Simplest sample use is :
             
             <DraggableList
-                 component={Cell}
-                 dataSource={Data}
-                 />
-    
-### Attention 
-    
-    In your cell component, you should add below to your view 
-    
-     <View>
-        {/* other views*/}
-        <View {...this.props.dragHandlers} >
-            {/* this is the rect you can drag*/}
-        </View>
-        {/* other views*/}
-     </View>
-     
-     this.props.rowData, you can get the data passed to cell, 
-            
+                                isScrollView={false}
+                                dataSource={[{id:1}, {id:2}]}
+                                keys={[1,2]}
+                                
+                                renderCell={(rowData)=>{
+                                    {/*console.log("renderCell:", rowData);*/}
+                                    return (<Text>{rowData.id}</Text>);
+                               }}
+                            />
+
+#### fork from [react-native-dragablelist](https://github.com/hzzcc/react-native-dragablelist.git)
+
+     原来的项目不支持flexWrap
 

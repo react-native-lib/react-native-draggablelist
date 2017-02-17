@@ -1,6 +1,6 @@
 {
-  "name": "react-native-draggablelist",
-  "version": "1.2.2",
+  "name": "react-native-vk-draggablelist",
+  "version": "2.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/hzzcc/react-native-dragablelist.git"
+    "url": "git+https://github.com/react-native-lib/react-native-draggablelist.git"
   },
   "keywords": [
     "react-component",
@@ -18,15 +18,15 @@
     "drag",
     "draggableList"
   ],
-  "author": "hzzcc",
+  "author": "lijinchao",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/hzzcc/react-native-dragablelist/issues"
+    "url": "https://github.com/react-native-lib/react-native-draggablelist/issues"
   },
-  "homepage": "https://github.com/hzzcc/react-native-dragablelist#readme",
+  "homepage": "https://github.com/react-native-lib/react-native-draggablelist#readme",
   "dependencies": {
-    "invariant": "^2.2.0",
-    "lodash": "^3.10.1",
+    "invariant": "^2.2.2",
+    "lodash": "^4.17.4",
     "react-timer-mixin": "^0.13.3"
   }
 }
