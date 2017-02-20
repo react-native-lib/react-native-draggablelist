@@ -12,6 +12,8 @@ var DragableList = React.createClass({
     mixins: [TimerMixin],
 
     propTypes: {
+        disableDrag: PropTypes.bool, //scrollView or view
+
         isScrollView: PropTypes.bool.isRequired, //scrollView or view
         dataSource: PropTypes.array.isRequired, //data
         keys: PropTypes.array, //pre orders of data
@@ -30,6 +32,7 @@ var DragableList = React.createClass({
 
     getDefaultProps() {
         return {
+            disableDrag:false
         };
     },
 
@@ -173,6 +176,7 @@ var DragableList = React.createClass({
                         <AnimatedCell
                             key={key + 'd'}
                             keyName={key + 'd'}
+                            disableDrag={this.props.disableDrag}
 
                             dummy={true}
 
@@ -199,6 +203,7 @@ var DragableList = React.createClass({
                         <AnimatedCell
                             key={key}
                             keyName={key}
+                            disableDrag={this.props.disableDrag}
 
                             onLayout={onLayout}
                             restLayout={this.state.restLayouts[idx]}
@@ -229,6 +234,7 @@ var DragableList = React.createClass({
                     <AnimatedCell
                         key={this.state.activeKey}
                         keyName={this.state.activeKey}
+                        disableDrag={this.props.disableDrag}
 
                         restLayout={this.state.activeInitialLayout}
                         onMove={this._onMove}

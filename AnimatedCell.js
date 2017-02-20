@@ -13,6 +13,8 @@ var AnimateCell = React.createClass({
     mixins: [TimerMixin],
 
     propTypes: {
+        disableDrag: PropTypes.bool.isRequired, //scrollView or view
+
         shouldUpdateId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]), //需要更新的cell id
         shouldUpdate:PropTypes.bool,
         dummy:PropTypes.bool,
@@ -141,7 +143,7 @@ var AnimateCell = React.createClass({
             var oriPageXY = {pageX: 0, pageY: 0};
             handlers = {
                 ...this.emptyPanResponder.panHandlers,
-                onStartShouldSetResponder: () => true,
+                onStartShouldSetResponder: () => !this.props.disableDrag,
                 onResponderGrant: (evt, gestureState) => {
                     console.log("onResponderGrant:", this.props.keyName);
                     this.state.pan.setValue({x: 0, y: 0});           // reset
